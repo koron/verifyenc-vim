@@ -84,8 +84,6 @@ function! s:Has_multibyte_character()
   if &fileencoding == '' && &encoding == &fileencoding
     return 0
   endif
-  let lnum = line('.')
-  let cnum = col('.')
 
   " Assure latency for big files without multibyte chars.
   let stopline = line('$')
@@ -94,8 +92,7 @@ function! s:Has_multibyte_character()
   endif
   let timeout = 1000
 
-  if search("[^\t -~]", 'w', stopline, timeout) > 0
-    call cursor(lnum, cnum)
+  if search("[^\t -~]", 'wn', stopline, timeout) > 0
     return 0
   else
     " No multibyte characters, then set 'fileencoding' to NULL
