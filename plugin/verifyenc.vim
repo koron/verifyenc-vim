@@ -119,8 +119,8 @@ function! s:Verify_euc_jp()
       let kanalen = strlen(substitute(substitute(curline, s:mx_euc_kana, "\1", 'g'), "[^\1]", '', 'g'))
       if charlen / 2 < kanalen * 3
         exec "edit! ++enc=".&g:fileencoding
-	doautocmd BufReadPost
-	return 1
+        doautocmd BufReadPost
+        return 1
       endif
     endfor
   endif
