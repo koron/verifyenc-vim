@@ -49,14 +49,18 @@ function! s:Status(argv)
   echo 'Verify encoding is *'.(g:verifyenc_enable ? 'ON' : 'OFF').'*'
 endfunction
 
+function! s:EditByGlobalFenc()
+  execute 'edit! ++enc='.&g:fileencoding
+  doautocmd BufReadPost
+endfunction
+
 function! s:VerifyEncoding()
   if !has('iconv') || &modifiable == 0 || g:verifyenc_enable == 0
     return
   endif
   " Check if empty file.
   if &fileencoding != '' && line2byte(1) < 0
-    edit! ++enc=
-    doautocmd BufReadPost
+    call s:EditByGlobalFenc()
     return
   endif
   " Check whether multibyte is exists or not.
@@ -127,8 +131,7 @@ function! s:Verify_euc_jp()
       let charlen = strlen(substitute(substitute(curline,'[\t -~]', '', 'g'), '.', "\1", 'g'))
       let kanalen = strlen(substitute(substitute(curline, s:mx_euc_kana, "\1", 'g'), "[^\1]", '', 'g'))
       if charlen / 2 < kanalen * 3
-	edit! ++enc=
-	doautocmd BufReadPost
+	call s:EditByGlobalFenc()
 	return 1
       endif
       let linenum = linenum + 1
