@@ -81,7 +81,7 @@ endfunction
 " multibyte character
 
 function! s:Has_multibyte_character()
-  if &fileencoding == '' && &encoding == &fileencoding
+  if &fileencoding == '' || &encoding == &fileencoding
     return 0
   endif
   if search("[^\t -~]", 'wn') > 0
