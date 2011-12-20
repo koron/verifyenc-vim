@@ -95,8 +95,8 @@ function! s:Has_multibyte_character()
   if search("[^\t -~]", 'wn', stopline, timeout) > 0
     return 0
   else
-    " No multibyte characters, then set 'fileencoding' to NULL
-    let &fileencoding = ""
+    " No multibyte characters, then set global 'fileencoding'.
+    let &l:fileencoding = &g:fileencoding
     return 1
   endif
 endfunction
