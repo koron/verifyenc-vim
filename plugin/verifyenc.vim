@@ -4,7 +4,7 @@
 "   Verify the file is truly in 'fileencoding' encoding.
 "
 " Maintainer:	MURAOKA Taro <koron.kaoriya@gmail.com>
-" Last Change:	27-Jul-2003.
+" Last Change:	20-Dec-2011.
 " Options:	'verifyenc_enable'	When 0, checking become disable.
 "		'verifyenc_maxlines'	Maximum range to check (for speed).
 "
@@ -84,10 +84,7 @@ function! s:Has_multibyte_character()
   if &fileencoding == '' && &encoding == &fileencoding
     return 0
   endif
-  let lnum = line('.')
-  let cnum = col('.')
-  if search("[^\t -~]", 'w') > 0
-    call cursor(lnum, cnum)
+  if search("[^\t -~]", 'wn') > 0
     return 0
   else
     " No multibyte characters, then set 'fileencoding' to NULL
