@@ -54,6 +54,10 @@ function! s:EditByGlobalFenc()
   doautocmd BufReadPost
 endfunction
 
+function! s:GetMaxlines()
+  return min([line('$'), g:verifyenc_maxlines])
+endfunction
+
 function! s:VerifyEncoding()
   if !has('iconv') || &modifiable == 0 || g:verifyenc_enable == 0
     return
@@ -90,10 +94,7 @@ function! s:Has_multibyte_character()
   endif
 
   " Assure latency for big files without multibyte chars.
-  let stopline = line('$')
-  if stopline > g:verifyenc_maxlines
-    let stopline = g:verifyenc_maxlines
-  endif
+  let stopline = s:GetMaxlines()
   let timeout = 1000
 
   if search("[^\t -~]", 'wn', stopline, timeout) > 0
@@ -120,10 +121,7 @@ endif
 function! s:Verify_euc_jp()
   if &encoding =~# '^euc-\%(jp\|jisx0213\)$' && &fileencoding != '' && &encoding != &fileencoding
     " Range to check
-    let rangelast = line('$')
-    if rangelast > g:verifyenc_maxlines
-      let rangelast = g:verifyenc_maxlines
-    endif
+    let rangelast = s:GetMaxlines()
     " Checking loop
     let linenum = 1
     while linenum <= rangelast
