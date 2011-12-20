@@ -1,12 +1,12 @@
-" vi:set ts=8 sts=2 sw=2 tw=0:
+" vi:set ts=8 sts=2 sw=2 tw=0 et:
 "
 " verifyenc.vim
 "   Verify the file is truly in 'fileencoding' encoding.
 "
-" Maintainer:	MURAOKA Taro <koron.kaoriya@gmail.com>
-" Last Change:	20-Dec-2011.
-" Options:	'verifyenc_enable'	When 0, checking become disable.
-"		'verifyenc_maxlines'	Maximum range to check (for speed).
+" Maintainer:   MURAOKA Taro <koron.kaoriya@gmail.com>
+" Last Change:  20-Dec-2011.
+" Options:      'verifyenc_enable'      When 0, checking become disable.
+"               'verifyenc_maxlines'    Maximum range to check (for speed).
 "
 " To make vim NOT TO LOAD this plugin, write next line in your .vimrc:
 "   :let plugin_verifyenc_disable = 1
@@ -129,8 +129,8 @@ function! s:Verify_euc_jp()
       let charlen = strlen(substitute(substitute(curline,'[\t -~]', '', 'g'), '.', "\1", 'g'))
       let kanalen = strlen(substitute(substitute(curline, s:mx_euc_kana, "\1", 'g'), "[^\1]", '', 'g'))
       if charlen / 2 < kanalen * 3
-	call s:EditByGlobalFenc()
-	return 1
+        call s:EditByGlobalFenc()
+        return 1
       endif
       let linenum = linenum + 1
     endwhile
