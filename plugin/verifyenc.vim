@@ -14,7 +14,7 @@
 if exists('plugin_verifyenc_disable')
   finish
 endif
-let s:debug = 1
+let s:debug = 0
 
 " Set default options
 if !exists("verifyenc_enable")
