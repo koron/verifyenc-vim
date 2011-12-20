@@ -4,7 +4,7 @@
 "   Verify the file is truly in 'fileencoding' encoding.
 "
 " Maintainer:	MURAOKA Taro <koron.kaoriya@gmail.com>
-" Last Change:	27-Jul-2003.
+" Last Change:	20-Dec-2011.
 " Options:	'verifyenc_enable'	When 0, checking become disable.
 "		'verifyenc_maxlines'	Maximum range to check (for speed).
 "
@@ -14,7 +14,7 @@
 if exists('plugin_verifyenc_disable')
   finish
 endif
-let s:debug = 1
+let s:debug = 0
 
 " Set default options
 if !exists("verifyenc_enable")
@@ -55,7 +55,7 @@ function! s:VerifyEncoding()
   endif
   " Check if empty file.
   if &fileencoding != '' && line2byte(1) < 0
-    edit! ++enc=
+    exec "edit! ++enc=".&g:fileencoding
     doautocmd BufReadPost
     return
   endif
@@ -81,17 +81,14 @@ endfunction
 " multibyte character
 
 function! s:Has_multibyte_character()
-  if &fileencoding == '' && &encoding == &fileencoding
+  if &fileencoding == '' || &encoding == &fileencoding
     return 0
   endif
-  let lnum = line('.')
-  let cnum = col('.')
-  if search("[^\t -~]", 'w') > 0
-    call cursor(lnum, cnum)
+  if search("[^\t -~]", 'wn') > 0
     return 0
   else
-    " No multibyte characters, then set 'fileencoding' to NULL
-    let &fileencoding = ""
+    " No multibyte characters, then set global 'fileencoding'.
+    let &l:fileencoding = &g:fileencoding
     return 1
   endif
 endfunction
@@ -116,18 +113,16 @@ function! s:Verify_euc_jp()
       let rangelast = g:verifyenc_maxlines
     endif
     " Checking loop
-    let linenum = 1
-    while linenum <= rangelast
+    for linenum in range(1, min(rangelast, g:verifyenc_maxlines))
       let curline = getline(linenum) 
       let charlen = strlen(substitute(substitute(curline,'[\t -~]', '', 'g'), '.', "\1", 'g'))
       let kanalen = strlen(substitute(substitute(curline, s:mx_euc_kana, "\1", 'g'), "[^\1]", '', 'g'))
       if charlen / 2 < kanalen * 3
-	edit! ++enc=
-	doautocmd BufReadPost
-	return 1
+        exec "edit! ++enc=".&g:fileencoding
+        doautocmd BufReadPost
+        return 1
       endif
-      let linenum = linenum + 1
-    endwhile
+    endfor
   endif
   return 0
 endfunction
