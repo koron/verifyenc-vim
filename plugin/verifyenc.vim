@@ -14,7 +14,7 @@
 if exists('plugin_verifyenc_disable')
   finish
 endif
-let s:debug = 1
+let s:debug = 0
 
 " Set default options
 if !exists("verifyenc_enable")
@@ -82,7 +82,9 @@ function! s:VerifyEncoding()
     return
   endif
   " Nop
-  let b:verifyenc = 'NONE'
+  if s:debug
+    let b:verifyenc = 'NONE'
+  endif
 endfunction
 
 "-----------------------------------------------------------------------------
