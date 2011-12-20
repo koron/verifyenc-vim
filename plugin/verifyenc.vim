@@ -113,8 +113,7 @@ function! s:Verify_euc_jp()
       let rangelast = g:verifyenc_maxlines
     endif
     " Checking loop
-    let linenum = 1
-    while linenum <= rangelast
+    for linenum in range(1, min(rangelast, g:verifyenc_maxlines))
       let curline = getline(linenum) 
       let charlen = strlen(substitute(substitute(curline,'[\t -~]', '', 'g'), '.', "\1", 'g'))
       let kanalen = strlen(substitute(substitute(curline, s:mx_euc_kana, "\1", 'g'), "[^\1]", '', 'g'))
@@ -123,8 +122,7 @@ function! s:Verify_euc_jp()
 	doautocmd BufReadPost
 	return 1
       endif
-      let linenum = linenum + 1
-    endwhile
+    endfor
   endif
   return 0
 endfunction
