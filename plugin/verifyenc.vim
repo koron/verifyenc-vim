@@ -55,7 +55,7 @@ function! s:VerifyEncoding()
   endif
   " Check if empty file.
   if &fileencoding != '' && line2byte(1) < 0
-    edit! ++enc=
+    exec "edit! ++enc=".&g:fileencoding
     doautocmd BufReadPost
     return
   endif
@@ -119,7 +119,7 @@ function! s:Verify_euc_jp()
       let charlen = strlen(substitute(substitute(curline,'[\t -~]', '', 'g'), '.', "\1", 'g'))
       let kanalen = strlen(substitute(substitute(curline, s:mx_euc_kana, "\1", 'g'), "[^\1]", '', 'g'))
       if charlen / 2 < kanalen * 3
-	edit! ++enc=
+        exec "edit! ++enc=".&g:fileencoding
 	doautocmd BufReadPost
 	return 1
       endif
