@@ -4,7 +4,7 @@
 "   Verify the file is truly in 'fileencoding' encoding.
 "
 " Maintainer:   MURAOKA Taro <koron.kaoriya@gmail.com>
-" Last Change:  20-Dec-2011.
+" Last Change:  21-Dec-2011.
 " Options:      'verifyenc_enable'      When 0, checking become disable.
 "               'verifyenc_maxlines'    Maximum range to check (for speed).
 "
@@ -81,6 +81,10 @@ function! s:VerifyEncoding()
     endif
     return
   endif
+  " Check to be force cp932
+  if &encoding == 'cp932' && s:Verify_cp932()
+    return
+  endif
   " Nop
   if s:debug
     let b:verifyenc = 'NONE'
@@ -136,6 +140,21 @@ function! s:Verify_euc_jp()
       endif
       let linenum = linenum + 1
     endwhile
+  endif
+  return 0
+endfunction
+
+function! s:Verify_cp932()
+  if &encoding == 'cp932' && &fileencoding == 'cp932'
+    let stopline = s:GetMaxlines()
+    let timeout = 10000
+    if search('[\x82]$', 'wn', stopline, timeout) > 0
+      " Guess utf8
+      " TODO: Should better to specify encoding name 'utf-8' forcely.
+      call s:EditByGlobalFenc()
+      return 1
+    endif
+    " TODO: Verify another encodings that didn't recognized.
   endif
   return 0
 endfunction
