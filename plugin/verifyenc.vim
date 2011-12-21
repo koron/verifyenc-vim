@@ -32,7 +32,7 @@ command! -nargs=? VerifyEnc call <SID>Status(<q-args>)
 if has('autocmd')
   augroup VerifyEncoding
   au!
-  autocmd BufReadPost * silent call <SID>VerifyEncoding()
+  autocmd BufReadPost * call <SID>VerifyEncoding()
   augroup END
 endif
 
