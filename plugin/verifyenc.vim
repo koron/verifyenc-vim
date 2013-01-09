@@ -4,7 +4,7 @@
 "   Verify the file is truly in 'fileencoding' encoding.
 "
 " Maintainer:   MURAOKA Taro <koron.kaoriya@gmail.com>
-" Last Change:  21-Dec-2011.
+" Last Change:  10-Jan-2013.
 " Options:      'verifyenc_enable'      When 0, checking become disable.
 "               'verifyenc_maxlines'    Maximum range to check (for speed).
 "
@@ -14,7 +14,6 @@
 if exists('plugin_verifyenc_disable')
   finish
 endif
-let s:debug = 0
 
 " Set default options
 if !exists("verifyenc_enable")
@@ -50,7 +49,10 @@ function! s:Status(argv)
 endfunction
 
 function! s:EditByGlobalFenc()
-  execute 'edit! ++enc='.&g:fileencoding
+  if len(bufname('%')) != 0
+    execute 'edit! ++enc='.&g:fileencoding
+  endif
+  let b:verifyenc = 'SUPPRESSED'
   doautocmd BufReadPost
 endfunction
 
@@ -58,8 +60,16 @@ function! s:GetMaxlines()
   return min([line('$'), g:verifyenc_maxlines])
 endfunction
 
+function! s:IsDisabled()
+  if !has('iconv') || &modifiable == 0 || g:verifyenc_enable == 0 || exists('b:verifyenc')
+    return 1
+  else
+    return 0
+  endif
+endfunction
+
 function! s:VerifyEncoding()
-  if !has('iconv') || &modifiable == 0 || g:verifyenc_enable == 0
+  if s:IsDisabled()
     return
   endif
   " Check if empty file.
@@ -69,26 +79,21 @@ function! s:VerifyEncoding()
   endif
   " Check whether multibyte is exists or not.
   if &fileencoding != '' && &fileencoding !~ '^ucs' && s:Has_multibyte_character()
-    if s:debug
-      let b:verifyenc = 'NO MULTIBYTE'
-    endif
+    let b:verifyenc = 'NO MULTIBYTE'
     return
   endif
   " Check to be force euc-jp
   if &encoding =~# '^euc-\%(jp\|jisx0213\)$' && s:Verify_euc_jp()
-    if s:debug
-      let b:verifyenc = 'FORCE EUC-JP'
-    endif
+    let b:verifyenc = 'FORCE EUC-JP'
     return
   endif
   " Check to be force cp932
   if &encoding == 'cp932' && s:Verify_cp932()
+    let b:verifyenc = 'FORCE CP-932'
     return
   endif
   " Nop
-  if s:debug
-    let b:verifyenc = 'NONE'
-  endif
+  let b:verifyenc = 'NONE'
 endfunction
 
 "-----------------------------------------------------------------------------
@@ -117,7 +122,8 @@ endfunction
 
 let s:mx_euc_kana = '['.nr2char(0x8ea4).nr2char(0x8ea5).']'.'\%([^\t -~]\)'
 
-if s:debug
+" For development purpose.
+if 0
   function! CheckEucEUC()
     echo "charlen=".strlen(substitute(substitute(getline('.'),'[\t -~]', '', 'g'), '.', "\1", 'g'))
     echo "kanalen=".strlen(substitute(substitute(getline('.'), s:mx_euc_kana, "\1", 'g'), "[^\1]", '', 'g'))
