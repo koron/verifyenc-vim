@@ -4,7 +4,7 @@
 "   Verify the file is truly in 'fileencoding' encoding.
 "
 " Maintainer:   MURAOKA Taro <koron.kaoriya@gmail.com>
-" Last Change:  10-Jan-2013.
+" Last Change:  11-Jan-2013.
 " Options:      'verifyenc_enable'      When 0, checking become disable.
 "               'verifyenc_maxlines'    Maximum range to check (for speed).
 "
@@ -52,8 +52,9 @@ function! s:EditByGlobalFenc()
   if len(bufname('%')) != 0
     execute 'edit! ++enc='.&g:fileencoding
   endif
-  let b:verifyenc = 'SUPPRESSED'
+  let b:verifyenc_guard = 1
   doautocmd BufReadPost
+  unlet b:verifyenc_guard
 endfunction
 
 function! s:GetMaxlines()
@@ -61,7 +62,7 @@ function! s:GetMaxlines()
 endfunction
 
 function! s:IsDisabled()
-  if !has('iconv') || &modifiable == 0 || g:verifyenc_enable == 0 || exists('b:verifyenc')
+  if !has('iconv') || &modifiable == 0 || g:verifyenc_enable == 0 || exists('b:verifyenc_guard')
     return 1
   else
     return 0
@@ -75,20 +76,23 @@ function! s:VerifyEncoding()
   " Check if empty file.
   if &fileencoding != '' && line2byte(1) < 0
     call s:EditByGlobalFenc()
+    let b:verifyenc = 'SUPPRESSED'
     return
   endif
   " Check whether multibyte is exists or not.
-  if &fileencoding != '' && &fileencoding !~ '^ucs' && s:Has_multibyte_character()
+  if &fileencoding != '' && &fileencoding !~ '^ucs' && s:HasMultibyteChar()
     let b:verifyenc = 'NO MULTIBYTE'
     return
   endif
   " Check to be force euc-jp
   if &encoding =~# '^euc-\%(jp\|jisx0213\)$' && s:Verify_euc_jp()
+    call s:EditByGlobalFenc()
     let b:verifyenc = 'FORCE EUC-JP'
     return
   endif
   " Check to be force cp932
   if &encoding == 'cp932' && s:Verify_cp932()
+    call s:EditByGlobalFenc()
     let b:verifyenc = 'FORCE CP-932'
     return
   endif
@@ -96,10 +100,20 @@ function! s:VerifyEncoding()
   let b:verifyenc = 'NONE'
 endfunction
 
+function! s:SearchFromTop(pattern)
+  let stopline = s:GetMaxlines()
+  let timeout = 1000
+  let pos = getpos('.')
+  normal! 1G
+  let retval = search(a:pattern, 'n', stopline, timeout) > 0
+  call setpos('.', pos)
+  return retval
+endfunction
+
 "-----------------------------------------------------------------------------
 " multibyte character
 
-function! s:Has_multibyte_character()
+function! s:HasMultibyteChar()
   if &fileencoding == '' || &encoding == &fileencoding
     return 0
   endif
@@ -108,7 +122,7 @@ function! s:Has_multibyte_character()
   let stopline = s:GetMaxlines()
   let timeout = 1000
 
-  if search("[^\t -~]", 'wn', stopline, timeout) > 0
+  if s:SearchFromTop("[^\t -~]") > 0
     return 0
   else
     " No multibyte characters, then set global 'fileencoding'.
@@ -141,7 +155,6 @@ function! s:Verify_euc_jp()
       let charlen = strlen(substitute(substitute(curline,'[\t -~]', '', 'g'), '.', "\1", 'g'))
       let kanalen = strlen(substitute(substitute(curline, s:mx_euc_kana, "\1", 'g'), "[^\1]", '', 'g'))
       if charlen / 2 < kanalen * 3
-        call s:EditByGlobalFenc()
         return 1
       endif
       let linenum = linenum + 1
@@ -154,13 +167,10 @@ function! s:Verify_cp932()
   if &encoding == 'cp932' && &fileencoding == 'cp932'
     let stopline = s:GetMaxlines()
     let timeout = 10000
-    if search('[\x82]$', 'wn', stopline, timeout) > 0
-      " Guess utf8
-      " TODO: Should better to specify encoding name 'utf-8' forcely.
-      call s:EditByGlobalFenc()
+    if s:SearchFromTop('[\x82]$') > 0
       return 1
     endif
-    " TODO: Verify another encodings that didn't recognized.
+    " TODO: Verify another encodings that didn't be recognized.
   endif
   return 0
 endfunction
