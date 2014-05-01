@@ -109,7 +109,7 @@ function! s:SearchFromTop(pattern)
   let stopline = s:GetMaxlines()
   let timeout = 1000
   let pos = getpos('.')
-  normal! 1G
+  call cursor(1, 1)
   let retval = search(a:pattern, 'cnW', stopline, timeout) > 0
   call setpos('.', pos)
   return retval
